@@ -31,6 +31,16 @@
 
 📝 富文本卡片：支持富文本卡片回复，信息更丰富多彩
 
+## TODO
+
+- [ ] 与[Feishu-ChatBot](https://github.com/ConnectAI-E/Feishu-OpenAI)进行整合，进一步完善chatbot能力
+- [ ] 🔙 历史回档: 轻松回档历史对话，继续话题讨论
+- [ ] 🎥 话题内容秒转PPT：让你的汇报从此变得更加简单
+- [ ] prompt优化：深化场景细分，让chatbot成为你的个人专属助理
+- [ ] 群聊summary：新人加群后可让机器人自动分析并总结群内历史消息
+- [ ] 群聊活跃状态：机器人活跃状态可控，而不需要每句话都艾特它
+- [ ] 其他欢迎补充
+
 
 
 ## 项目部署
@@ -186,7 +196,7 @@ Railway 是一家国外的 Serverless 平台，支持多种语言，可以一键
 
 #### 2. 配置环境变量
 
-在打开的页面中，配置环境变量，每个变量的说明如下图所示：
+在打开的页面中，配置环境变量，PORT/HTTP_PORT 必须设置为 80 ，railway health check 默认检查 80 端口，不支持自定义端口,每个变量的说明如下图所示：
 
 
 <img src='https://user-images.githubusercontent.com/50035229/225005602-88d8678f-9d17-4dc5-8d1e-4abf64fb84fd.png' alt='Railway 环境变量' width='500px'/>
