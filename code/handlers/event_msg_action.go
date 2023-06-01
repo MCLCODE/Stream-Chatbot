@@ -1,9 +1,15 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/k0kubun/pp/v3"
+	"log"
+	"start-feishubot/initialization"
+	"start-feishubot/services/accesscontrol"
 	"start-feishubot/services/chatgpt"
 	"start-feishubot/services/openai"
+	"strings"
 	"time"
 )
 
@@ -12,6 +18,24 @@ type MessageAction struct { /*消息*/
 }
 
 func (m *MessageAction) Execute(a *ActionInfo) bool {
+
+	// Add access control
+	if initialization.GetConfig().AccessControlEnable &&
+		!accesscontrol.CheckAllowAccessThenIncrement(&a.info.userId) {
+
+		msg := fmt.Sprintf("UserId: 【%s】 has accessed max count today! Max access count today %s: 【%d】",
+			a.info.userId, accesscontrol.GetCurrentDateFlag(), initialization.GetConfig().AccessControlMaxCountPerUserPerDay)
+
+		_ = sendMsg(*a.ctx, msg, a.info.chatId)
+		return false
+	}
+
+	//s := "快速响应，用于测试： " + time.Now().String() +
+	//	" accesscontrol.currentDate " + accesscontrol.GetCurrentDateFlag()
+	//_ = sendMsg(*a.ctx, s, a.info.chatId)
+	//log.Println(s)
+	//return false
+
 	cardId, err2 := sendOnProcess(a)
 	if err2 != nil {
 		return false
@@ -39,14 +63,18 @@ func (m *MessageAction) Execute(a *ActionInfo) bool {
 			if err := recover(); err != nil {
 				err := updateFinalCard(*a.ctx, "聊天失败", cardId)
 				if err != nil {
+					printErrorMessage(a, msg, err)
 					return
 				}
 			}
 		}()
 
+		//log.Printf("UserId: %s , Request: %s", a.info.userId, msg)
+
 		if err := m.chatgpt.StreamChat(*a.ctx, msg, chatResponseStream); err != nil {
 			err := updateFinalCard(*a.ctx, "聊天失败", cardId)
 			if err != nil {
+				printErrorMessage(a, msg, err)
 				return
 			}
 			close(done) // 关闭 done 信号
@@ -64,6 +92,7 @@ func (m *MessageAction) Execute(a *ActionInfo) bool {
 			case <-ticker.C:
 				err := updateTextCard(*a.ctx, answer, cardId)
 				if err != nil {
+					printErrorMessage(a, msg, err)
 					return
 				}
 			}
@@ -82,6 +111,7 @@ func (m *MessageAction) Execute(a *ActionInfo) bool {
 		case <-done: // 添加 done 信号的处理
 			err := updateFinalCard(*a.ctx, answer, cardId)
 			if err != nil {
+				printErrorMessage(a, msg, err)
 				return false
 			}
 			ticker.Stop()
@@ -96,9 +126,24 @@ func (m *MessageAction) Execute(a *ActionInfo) bool {
 			//	//updateNewTextCard(*a.ctx, a.info.sessionId, a.info.msgId,
 			//	//	completions.Content)
 			//}
+			log.Printf("\n\n\n")
+			log.Printf("Success request: UserId: %s , Request: %s , Response: %s", a.info.userId, msg, answer)
+			jsonByteArray, err := json.Marshal(msg)
+			if err != nil {
+				log.Printf("Error marshaling JSON request: UserId: %s , Request: %s , Response: %s", a.info.userId, jsonByteArray, answer)
+			}
+			jsonStr := strings.ReplaceAll(string(jsonByteArray), "\\n", "")
+			jsonStr = strings.ReplaceAll(jsonStr, "\n", "")
+			log.Printf("\n\n\n")
+			log.Printf("Success request plain jsonStr: UserId: %s , Request: %s , Response: %s",
+				a.info.userId, jsonStr, answer)
 			return false
 		}
 	}
+}
+
+func printErrorMessage(a *ActionInfo, msg []openai.Messages, err error) {
+	log.Printf("Failed request: UserId: %s , Request: %s , Err: %s", a.info.userId, msg, err)
 }
 
 func sendOnProcess(a *ActionInfo) (*string, error) {

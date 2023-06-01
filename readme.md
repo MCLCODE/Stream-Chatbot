@@ -1,6 +1,9 @@
 <p align='center'>
-    <img src='https://user-images.githubusercontent.com/50035229/231599193-5d1dd955-2bcc-421d-86ed-17dfb8dba3fc.gif' alt='' width='800'/>
+    <img src='https://user-images.githubusercontent.com/50035229/236435740-f749c048-1c89-4112-8bd7-e373508000f6.gif' alt='' width='800'/>
 </p>
+
+
+
 
 
 
@@ -30,6 +33,16 @@
 ⏰ 自动结束：超时自动结束对话，支持清除讨论历史
 
 📝 富文本卡片：支持富文本卡片回复，信息更丰富多彩
+
+## TODO
+
+- [ ] 与[Feishu-ChatBot](https://github.com/ConnectAI-E/Feishu-OpenAI)进行整合，进一步完善chatbot能力
+- [ ] 🔙 历史回档: 轻松回档历史对话，继续话题讨论
+- [ ] 🎥 话题内容秒转PPT：让你的汇报从此变得更加简单
+- [ ] prompt优化：深化场景细分，让chatbot成为你的个人专属助理
+- [ ] 群聊summary：新人加群后可让机器人自动分析并总结群内历史消息
+- [ ] 群聊活跃状态：机器人活跃状态可控，而不需要每句话都艾特它
+- [ ] 其他欢迎补充
 
 
 
@@ -186,7 +199,7 @@ Railway 是一家国外的 Serverless 平台，支持多种语言，可以一键
 
 #### 2. 配置环境变量
 
-在打开的页面中，配置环境变量，每个变量的说明如下图所示：
+在打开的页面中，配置环境变量，PORT/HTTP_PORT 必须设置为 80 ，railway health check 默认检查 80 端口，不支持自定义端口,每个变量的说明如下图所示：
 
 
 <img src='https://user-images.githubusercontent.com/50035229/225005602-88d8678f-9d17-4dc5-8d1e-4abf64fb84fd.png' alt='Railway 环境变量' width='500px'/>
@@ -309,6 +322,32 @@ docker compose down
 
 更多介绍，参考[飞书上的小计算器: Go 机器人来啦](https://www.bilibili.com/video/BV12M41187rV/)
 
+## 一些附加功能
+
+### 1. 日志功能
+
+可以参考 docker-compose.yml 和 config.example.yaml 里面的配置。要注意需要将 logs 目录映射到外部，这样可以方便查看日志。
+
+记录的日志大概是这样的：
+```
+2023/05/04 00:00:00 Success request: UserId: XXX , Request: [{user 请问今天是几号？} {assistant 抱歉，作为AI语言模型，我不知道今天是几号。请您查看您的设备上的日期或者问问其他人。}] , Response: 
+抱歉，作为AI语言模型，我不知道今天是几号。请您查看您的设备上的日期或者问问其他人。
+```
+
+这里为了保护用户隐私，没有调用飞书接口，将 UserId 翻译为可读的名字。如果有需要的话，建议单个单个按照 UserId 让飞书管理员查找。
+
+
+此外，比如可以使用
+```
+grep "UserId" app.log | wc -l
+```
+来统计一共问了多少个问题。(可以根据实际需求来进行搜索，比如只搜索 Success request 成功回复的请求。)
+
+### 2. 限流功能
+
+可以参考 docker-compose.yml 和 config.example.yaml 里面的配置。要注意这里没有将访问数据保存在外部，这样是为了先不引入外部依赖，比如 redis 或者 mysql。由于可以控制的时间范围是1天，所以放内存里也没啥大问题。
+
+
 ## 更多交流
 
 
@@ -326,4 +365,8 @@ docker compose down
 <img width="400" src="https://user-images.githubusercontent.com/50035229/224462896-28f7b2d5-f443-4cc2-9790-7b72e5c53f15.png">
 
 😚 谢谢你啦 😚
+
+## 赞助感谢
+
+友情感谢 'Find My AI' 提供的部分经费赞助！
 

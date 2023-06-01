@@ -49,10 +49,16 @@ func (c *ChatGPT) StreamChatWithHistory(ctx context.Context, msg []openai.ChatCo
 	config := openai.DefaultConfig(c.config.OpenaiApiKeys[0])
 	config.BaseURL = c.config.OpenaiApiUrl + "/v1"
 
+	proxyClient, parseProxyError := customOpenai.GetProxyClient(c.config.HttpProxy)
+	if parseProxyError != nil {
+		return parseProxyError
+	}
+	config.HTTPClient = proxyClient
+
 	client := openai.NewClientWithConfig(config)
 	//pp.Printf("client: %v", client)
 	req := openai.ChatCompletionRequest{
-		Model:       openai.GPT3Dot5Turbo,
+		Model:       c.config.OpenaiModel,
 		Messages:    msg,
 		N:           1,
 		Temperature: 0.7,
